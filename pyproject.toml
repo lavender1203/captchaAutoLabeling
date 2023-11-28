@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "captchaAutoLabeling"
+version = "0.1.0"
+description = ""
+authors = ["lavender1203 <848416881@qq.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.11"
+ddddocr = "^1.4.8"
+opencv-python = "^4.8.1.78"
+loguru = "^0.7.2"
+tqdm = "^4.66.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
