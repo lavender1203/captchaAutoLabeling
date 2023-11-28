@@ -11,9 +11,13 @@ poetry使用
 ```
 pip install poetry
 poetry install # 安装python依赖包
-poetry add python包 # 新增python依赖包
-```
 
+```
+运行：需要先将图片放到img目录
+```
+cp .env.template .env
+python main.py
+```
 
 构建和发布包：
 要构建并发布您的Python包，将自动生成所需的setup.py、setup.cfg和MANIFEST.in等文件，并将包发布到PyPI

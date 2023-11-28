@@ -40,11 +40,18 @@ def get_poses(pic):
     with open(pic, 'rb') as f:
         image = f.read()
 
-    model = OnnxModel()
-    model.load(model_path=f"{project_path}/models/best.onnx")
+    is_custom_model = os.environ.get("IS_CUSTOM_MODEL").lower() in ['true', '1', 'yes']
+    model_type = os.environ.get("MODEL_TYPE")
+    if is_custom_model and model_type == "onnx":
+        model = OnnxModel()
+        model_path = project_path + os.getenv("MODEL_PATH")
+        model.load(model_path=model_path)
+    else: # 默认使用ddddocr自带的模型
+        model = DDDDModel()
+        model.load()
     poses = model.run(image)
 
-    logger.info(poses)
+    # logger.debug(poses)
 
     im = cv2.imread(pic)
     w = im.shape[1]
@@ -70,7 +77,7 @@ def get_poses(pic):
             train_str = train_str + f"1 {round_6(x/w)} {round_6(y/h)} {round_6((x2-x1)/w)} {round_6((y2-y1)/h)}\n"
     if icon_cnt == target_cnt:
         # 目标检测成功
-        logger.info(train_res)
+        # logger.debug(train_res)
         # 获取pic的文件名, 用于保存
         filename = os.path.basename(pic)
         project_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
@@ -92,7 +99,7 @@ def auto_detect():
     image_sources = image_source.get_img_sources()
     # 判断是否有图片
     if not any(image_sources):
-        logger.info("img目录下没有图片, 请添加图片后重试")
+        logger.debug("img目录下没有图片, 请添加图片后重试")
         return
     # 清空文件夹
     paths = [project_path + "/data/images/", project_path + "/data/labels/", project_path + "/result/success/", project_path + "/result/fail/"]
@@ -103,19 +110,19 @@ def auto_detect():
     for path in paths:
         os.mkdir(path)
     # 添加处理进度条
-    tdqm_image_sources = tqdm(image_sources)
+    image_sources_list = list(image_sources)
+    tdqm_image_sources = tqdm(image_sources_list)    
     for filename in tdqm_image_sources:
         total_count = total_count + 1
-        start_timestamp = int(round(time.time() * 1000))
         flag, train_str, _ = get_poses(filename)
-        end_timestamp = int(round(time.time() * 1000))
-        logger.info(f"目标检测耗时: {end_timestamp - start_timestamp}ms")
-        tdqm_image_sources.set_description(f"目标检测成功率: {round_6(count/total_count)*100}%")
+        # 目标检测成功率保留两位小数
+        success_rate = round(count/total_count*100,2)
+        tdqm_image_sources.set_description(f"目标检测成功率: {success_rate}%")
         if not flag:
-            logger.info(f"{filename} 目标检测失败")
+            # logger.debug(f"{filename} 目标检测失败")
+            pass
         else:
             count = count + 1
-            logger.info(f"{filename} 目标检测成功")
             # 保存文件到另一个目录, 用于训练
             name = os.path.splitext(filename)[0].split("/")[-1]
             new_filename = project_path + "/data/images/" + name + ".jpg"
@@ -126,6 +133,6 @@ def auto_detect():
             with open(new_filename, "w") as f:
                 f.write(train_str)
     # 识别成功率
-    logger.info(f"识别成功率: {round_6(count/total_count)*100}%")
+    logger.debug(f"识别成功率: {round_6(count/total_count)*100}%")
 
 

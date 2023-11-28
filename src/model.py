@@ -52,9 +52,13 @@ class OnnxModel(BaseModel):
         self.model = None
 
     def load(self, model_path=None):
-        self.model = ONNX(model_path)
-        self.classes = ['icon', 'target']
-
+        # 是否配置了使用GPU推理，默认使用CPU
+        use_gpu = os.environ.get("USE_GPU")
+        is_use_gpu = use_gpu.lower() in ['true', '1', 'yes']
+        if is_use_gpu:
+            self.model = ONNX(model_path, ['CUDAExecutionProvider'])
+        else:
+            self.model = ONNX(model_path, ['CPUExecutionProvider'])
 
     def run(self, file):
         # 图片转换为矩阵
