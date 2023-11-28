@@ -27,7 +27,8 @@ def set_log_level():
 def main():
     load_dotenv(verbose=True)
     set_log_level()
-    # This function is intentionally left empty.
+    # 注册model
+    
     auto_detect()
 
 if __name__ == '__main__':

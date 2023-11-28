@@ -7,9 +7,11 @@ Created on  2023/11/28 16:31:06
 @desc   :   None
 @version:   1.0
 '''
+import importlib
 import os
 import sys
 import ddddocr
+from loguru import logger
 
 from src.onnx import ONNX
 
@@ -76,3 +78,41 @@ class OnnxModel(BaseModel):
         pred = non_max_suppression(output, 0.5, 0.5)
         res = tag_images(img, pred, self.model.img_size, 0.5)
         return res
+
+class ModelFactory(object):
+    models = {}
+
+    @staticmethod
+    def register(name, model):
+        print(f"注册模型 {name}")
+        ModelFactory.models[name] = model
+
+    @staticmethod
+    def get(name):
+        if not name:
+            name = "DDDDModel"
+        return ModelFactory.models[name]
+    
+    @staticmethod
+    def get_all_models():
+        return ModelFactory.models
+
+    @staticmethod
+    def register_all_models(model_names):
+        for name in model_names:
+            model = ModelFactory.create_model(name)
+            if model is not None:
+                ModelFactory.register(name, model)
+
+    @staticmethod
+    def create_model(model_name):
+        try:
+            # 获取模型的类
+            model_class = globals()[model_name]
+            # 创建模型的实例
+            model_instance = model_class()
+            return model_instance
+        except ImportError:
+            logger.error(f"无法导入模型 {model_name}")
+            return None
+

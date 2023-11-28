@@ -14,7 +14,7 @@ import os
 from loguru import logger
 from src import image_source
 from tqdm import tqdm
-from src.model import DDDDModel
+from src.model import DDDDModel, ModelFactory
 from src.model import OnnxModel
 
 
@@ -40,15 +40,15 @@ def get_poses(pic):
     with open(pic, 'rb') as f:
         image = f.read()
 
-    is_custom_model = os.environ.get("IS_CUSTOM_MODEL").lower() in ['true', '1', 'yes']
     model_type = os.environ.get("MODEL_TYPE")
-    if is_custom_model and model_type == "onnx":
-        model = OnnxModel()
-        model_path = project_path + os.getenv("MODEL_PATH")
+    # 使用依赖注入方式重构代码, 使得可以自由切换模型
+    model_path = os.environ.get("MODEL_PATH")
+    if model_path and model_type:
+        model_path = project_path + model_path
+        model = ModelFactory.get(name=model_type)
         model.load(model_path=model_path)
-    else: # 默认使用ddddocr自带的模型
-        model = DDDDModel()
-        model.load()
+    else:
+        model = ModelFactory.get()
     poses = model.run(image)
 
     # logger.debug(poses)
