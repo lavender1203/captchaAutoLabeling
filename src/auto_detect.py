@@ -17,6 +17,8 @@ from tqdm import tqdm
 from src.model import DDDDModel, ModelFactory
 from src.model import OnnxModel
 
+# 获取文件绝对路径
+project_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
 
 def round_6(num):
     return round(num, 6)
@@ -32,7 +34,6 @@ def get_coordinates(poses):
     return res
 
 def get_poses_with_model(pic, model):
-    project_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
     res = []
     train_res = []
     train_str = ""
@@ -40,8 +41,6 @@ def get_poses_with_model(pic, model):
     with open(pic, 'rb') as f:
         image = f.read()
     poses = model.run(image)
-
-    # logger.debug(poses)
 
     im = cv2.imread(pic)
     w = im.shape[1]
@@ -70,20 +69,15 @@ def get_poses_with_model(pic, model):
         # logger.debug(train_res)
         # 获取pic的文件名, 用于保存
         filename = os.path.basename(pic)
-        project_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
         cv2.imwrite(f"{project_path}/result/success/{filename}", im)
         return True, train_str, res
     else:
         # 获取pic的文件名, 用于保存
         filename = os.path.basename(pic)
-        project_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
         cv2.imwrite(f"{project_path}/result/fail/{filename}", im)
         return False, train_str, res
 
-def auto_detect():
-    # 获取文件绝对路径
-    project_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
-    # 加载模型
+def load_model():
     model_type = os.environ.get("MODEL_TYPE")
     # 使用依赖注入方式重构代码, 使得可以自由切换模型
     model_path = os.environ.get("MODEL_PATH")
@@ -94,6 +88,13 @@ def auto_detect():
     else:
         model = ModelFactory.get()
         model.load()
+    if not model:
+        raise ValueError("模型加载失败")
+    return model
+
+def auto_detect():
+    # 加载模型
+    model = load_model()
     # 遍历img目录下的所有图片
     count = 0
     total_count = 0
