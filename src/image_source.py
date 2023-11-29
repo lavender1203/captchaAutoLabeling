@@ -15,9 +15,10 @@ def get_img_sources():
     @return: 图片路径
     @rtype: str
     '''
-
+    # 支持的图片格式
+    img_formats = ['.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff']
     img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../img")
     for root, dirs, files in os.walk(img_path):
         for file in files:
-            if file.endswith(".jpg"):
+            if os.path.splitext(file)[1] in img_formats:
                 yield os.path.join(root, file)

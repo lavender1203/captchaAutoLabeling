@@ -31,7 +31,7 @@ def get_coordinates(poses):
         res.append([x, y])
     return res
 
-def get_poses(pic):
+def get_poses_with_model(pic, model):
     project_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
     res = []
     train_res = []
@@ -39,16 +39,6 @@ def get_poses(pic):
 
     with open(pic, 'rb') as f:
         image = f.read()
-
-    model_type = os.environ.get("MODEL_TYPE")
-    # 使用依赖注入方式重构代码, 使得可以自由切换模型
-    model_path = os.environ.get("MODEL_PATH")
-    if model_path and model_type:
-        model_path = project_path + model_path
-        model = ModelFactory.get(name=model_type)
-        model.load(model_path=model_path)
-    else:
-        model = ModelFactory.get()
     poses = model.run(image)
 
     # logger.debug(poses)
@@ -93,6 +83,17 @@ def get_poses(pic):
 def auto_detect():
     # 获取文件绝对路径
     project_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
+    # 加载模型
+    model_type = os.environ.get("MODEL_TYPE")
+    # 使用依赖注入方式重构代码, 使得可以自由切换模型
+    model_path = os.environ.get("MODEL_PATH")
+    if model_path and model_type:
+        model_path = project_path + model_path
+        model = ModelFactory.get(name=model_type)
+        model.load(model_path=model_path)
+    else:
+        model = ModelFactory.get()
+        model.load()
     # 遍历img目录下的所有图片
     count = 0
     total_count = 0
@@ -114,7 +115,7 @@ def auto_detect():
     tdqm_image_sources = tqdm(image_sources_list)    
     for filename in tdqm_image_sources:
         total_count = total_count + 1
-        flag, train_str, _ = get_poses(filename)
+        flag, train_str, _ = get_poses_with_model(filename, model=model)
         # 目标检测成功率保留两位小数
         success_rate = round(count/total_count*100,2)
         tdqm_image_sources.set_description(f"目标检测成功率: {success_rate}%")
@@ -125,7 +126,9 @@ def auto_detect():
             count = count + 1
             # 保存文件到另一个目录, 用于训练
             name = os.path.splitext(filename)[0].split("/")[-1]
-            new_filename = project_path + "/data/images/" + name + ".jpg"
+            # 文件后缀
+            suffix = os.path.splitext(filename)[1]
+            new_filename = project_path + "/data/images/" + name + suffix
             with open(new_filename, "wb") as f:
                 f.write(open(filename, "rb").read())
             # 保存训练数据

@@ -31,6 +31,7 @@ class BaseModel(ABC):
 
     @abstractmethod
     def run(self, image):
+        # TODO: 返回的结果需要统一
         pass
 
 class DDDDModel(BaseModel):
@@ -38,7 +39,7 @@ class DDDDModel(BaseModel):
         self.model = None
 
     def load(self, model_path=None):
-        if model_path:
+        if model_path is not None:
             # 使用自己训练的模型
             self.model = ddddocr.DdddOcr(det=True, show_ad=False, import_onnx_path=model_path)
         else:
@@ -88,9 +89,10 @@ class ModelFactory(object):
         ModelFactory.models[name] = model
 
     @staticmethod
-    def get(name):
-        if not name:
+    def get(name=None):
+        if name is None:
             name = "DDDDModel"
+        print(f"获取模型 {name}")
         return ModelFactory.models[name]
     
     @staticmethod
