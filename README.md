@@ -19,6 +19,13 @@ cp .env.template .env
 python main.py
 ```
 
+如何自定义自己的model类进行二次开发：
+在src/model.py文件中新增xxxModel类并继承BaseModel类
+命名规范: 自定义模型名称 + Model
+xxx为自定义模型名
+详情请参考OnnxModel类的实现
+
+
 构建和发布包：
 要构建并发布您的Python包，将自动生成所需的setup.py、setup.cfg和MANIFEST.in等文件，并将包发布到PyPI
 ```
