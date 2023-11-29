@@ -77,8 +77,9 @@ class OnnxModel(BaseModel):
         input_feed = self.model.get_input_feed(image_numpy)
         output = self.model.onnx_session.run(None, input_feed)[0]
         pred = non_max_suppression(output, 0.5, 0.5)
-        res = tag_images(img, pred, self.model.img_size, 0.5)
-        return res
+        poses = tag_images(img, pred, self.model.img_size, 0.5)
+        poses = [pose['crop'] for pose in poses]
+        return poses
 
 class ModelFactory(object):
     models = {}
